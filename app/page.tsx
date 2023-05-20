@@ -6,11 +6,11 @@ import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 export default function Home() {
-  const [fromName, setFromName] = useState('Kunal');
-  const [fromEmail, setFromEmail] = useState('chauhan.kunal4@gmail.com');
-  const [userName, setUserName] = useState('chauhan.kunal4@gmail.com');
-  const [password, setPassword] = useState('muxhnjnzazvpmfsc');
-  const [smtpHost, setSmtpHost] = useState('smtp.gmail.com');
+  const [fromName, setFromName] = useState('');
+  const [fromEmail, setFromEmail] = useState('');
+  const [userName, setUserName] = useState('');
+  const [password, setPassword] = useState('');
+  const [smtpHost, setSmtpHost] = useState('smtp.');
   const [smtpPort, setSmtpPort] = useState('465');
   const [messagesPerDay, setMessagesPerDay] = useState(200);
   const [minimumTimeGap, setMinimumTimeGap] = useState(20);
@@ -23,7 +23,7 @@ export default function Home() {
     useState(false);
   const [imapUserName, setImapUserName] = useState('');
   const [imapPassword, setImapPassword] = useState('');
-  const [imapHost, setImapHost] = useState('imap.gmail.com');
+  const [imapHost, setImapHost] = useState('imap.');
   const [imapPort, setImapPort] = useState('465');
 
   // pop up
