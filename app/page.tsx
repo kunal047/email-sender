@@ -505,7 +505,14 @@ export default function Home() {
         >
           {isLoading ? <FontAwesomeIcon icon={faSpinner} spin /> : 'Save'}
         </button>
+        <p className='mt-4'>
+        For sending emails, you can go to {' '}  
+        <a href='/send-email' className='underline'>
+          Send Email
+        </a>
+      </p>
       </form>
+
     </div>
   );
 }
