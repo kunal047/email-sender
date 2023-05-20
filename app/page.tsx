@@ -1,15 +1,19 @@
 'use client';
 import { useState } from 'react';
+import { api } from '../api';
+import PopUp from '../components/PopUp';
+import { faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 export default function Home() {
-  const [fromName, setFromName] = useState('');
-  const [fromEmail, setFromEmail] = useState('');
-  const [userName, setUserName] = useState('');
-  const [password, setPassword] = useState('');
-  const [smtpHost, setSmtpHost] = useState('');
-  const [smtpPort, setSmtpPort] = useState('');
-  const [messagesPerDay, setMessagesPerDay] = useState('');
-  const [minTimeGap, setMinTimeGap] = useState('');
+  const [fromName, setFromName] = useState('Kunal');
+  const [fromEmail, setFromEmail] = useState('chauhan.kunal4@gmail.com');
+  const [userName, setUserName] = useState('chauhan.kunal4@gmail.com');
+  const [password, setPassword] = useState('muxhnjnzazvpmfsc');
+  const [smtpHost, setSmtpHost] = useState('smtp.gmail.com');
+  const [smtpPort, setSmtpPort] = useState('465');
+  const [messagesPerDay, setMessagesPerDay] = useState(200);
+  const [minimumTimeGap, setMinimumTimeGap] = useState(20);
   const [showReplyTo, setShowReplyTo] = useState(false);
   const [replyToAddress, setReplyToAddress] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -19,10 +23,26 @@ export default function Home() {
     useState(false);
   const [imapUserName, setImapUserName] = useState('');
   const [imapPassword, setImapPassword] = useState('');
-  const [imapHost, setImapHost] = useState('');
-  const [imapPort, setImapPort] = useState('');
+  const [imapHost, setImapHost] = useState('imap.gmail.com');
+  const [imapPort, setImapPort] = useState('465');
 
-  const handleSubmit = async (e: { preventDefault: () => void }) => {
+  // pop up
+  const [showPopUp, setShowPopUp] = useState(false);
+  const [popUpMessage, setPopUpMessage] = useState('');
+  const handleShowPopUp = () => {
+    setShowPopUp(true);
+  };
+
+  const handleClosePopUp = () => {
+    setShowPopUp(false);
+  };
+
+  // loading
+  const [isLoading, setIsLoading] = useState(false);
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  const handleSubmit = async (e: { preventDefault: () => void }, trigger: string) => {
     e.preventDefault();
 
     // Form validation
@@ -48,8 +68,8 @@ export default function Home() {
     if (!messagesPerDay) {
       validationErrors.messagesPerDay = 'Messages per Day is required';
     }
-    if (!minTimeGap) {
-      validationErrors.minTimeGap = 'Minimum Time Gap is required';
+    if (!minimumTimeGap) {
+      validationErrors.minimumTimeGap = 'Minimum Time Gap is required';
     }
     if (showReplyTo && !replyToAddress) {
       validationErrors.replyToAddress = 'Reply To Address is required';
@@ -71,6 +91,10 @@ export default function Home() {
       validationErrors.imapPort = 'IMAP Port is required';
     }
 
+    if (!emailRegex.test(fromEmail)) {
+      validationErrors.fromEmail = 'From Email is invalid';
+    }
+
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
@@ -84,7 +108,7 @@ export default function Home() {
       smtpHost,
       smtpPort,
       messagesPerDay,
-      minTimeGap,
+      minimumTimeGap,
       replyToAddress,
       imapUserName,
       imapPassword,
@@ -93,57 +117,59 @@ export default function Home() {
     };
 
     try {
-      const response = await fetch('/api/email-accounts', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
+      setIsLoading(true);
+      const response = await api.post(trigger === 'submit' ? 'email-account' : 'email-account/verify', {
+        ...formData,
       });
 
-      if (response.ok) {
+      if (response.data.statusCode === 200) {
+        setIsLoading(false);
         // Form data saved successfully
         console.log('Form data saved');
         // Reset form fields
+        // Reset form fields
         setFromName('');
         setFromEmail('');
-        // ... reset other form fields
+        setUserName('');
+        setPassword('');
+        setSmtpHost('smtp.');
+        setSmtpPort('');
+        setMessagesPerDay(0);
+        setMinimumTimeGap(0);
+        setShowReplyTo(false);
+        setReplyToAddress('');
+        // imap settings
+        setUseDifferentEmailForIMAP(false);
+        setImapUserName('');
+        setImapPassword('');
+        setImapHost('imap.');
+        setImapPort('');
       } else {
         // Handle error response from API
-        console.error('Error saving form data');
+        console.error('Error saving form data', response.data);
+        setPopUpMessage(response.data.message);
+        setIsLoading(false);
+        handleShowPopUp();
+        // show error popup
       }
-    } catch (error) {
+    } catch (error: any) {
       // Handle network error
-      console.error('Network error', error);
+      console.error('Network error', error.response);
+      setPopUpMessage(error.response.data.message);
+      setIsLoading(false);
+      handleShowPopUp();
     }
-
-    // Reset form fields
-    setFromName('');
-    setFromEmail('');
-    setUserName('');
-    setPassword('');
-    setSmtpHost('');
-    setSmtpPort('');
-    setMessagesPerDay('');
-    setMinTimeGap('');
-    setShowReplyTo(false);
-    setReplyToAddress('');
-    // imap settings
-    setUseDifferentEmailForIMAP(false);
-    setImapUserName('');
-    setImapPassword('');
-    setImapHost('');
-    setImapPort('');
   };
 
-  const handleCheckboxChange = (e: {
-    target: { checked: boolean | ((prevState: boolean) => boolean) };
-  }) => {
+  const handleCheckboxChange = (e: { target: { checked: boolean } }) => {
     setShowReplyTo(e.target.checked);
   };
 
   return (
     <div className="flex justify-center items-center">
+      {showPopUp && (
+        <PopUp message={popUpMessage} type="error" onClose={handleClosePopUp} />
+      )}
       <form className="w-2/3 p-8 bg-white rounded shadow">
         <h1 className="text-2xl font-bold mb-4">SMTP Settings</h1>
         <div className="grid grid-cols-2 gap-4">
@@ -246,8 +272,8 @@ export default function Home() {
                 <input
                   type="radio"
                   name="smtpPortOption"
-                  value="993"
-                  checked={smtpPort === '993'}
+                  value="587"
+                  checked={smtpPort === '587'}
                   onChange={(e) => setSmtpPort(e.target.value)}
                 />
                 TLS
@@ -256,8 +282,8 @@ export default function Home() {
                 <input
                   type="radio"
                   name="smtpPortOption"
-                  value="0"
-                  checked={smtpPort === '0'}
+                  value="25"
+                  checked={smtpPort === '25'}
                   onChange={(e) => setSmtpPort(e.target.value)}
                 />
                 None
@@ -267,7 +293,7 @@ export default function Home() {
           <div>
             <label className="block mb-2">Messages per Day:</label>
             <input
-              type="text"
+              type="number"
               value={messagesPerDay}
               onChange={(e) => setMessagesPerDay(e.target.value)}
               className={`w-full border rounded py-2 px-3 ${
@@ -283,15 +309,17 @@ export default function Home() {
           <div>
             <label className="block mb-2">Minimum Time Gap:</label>
             <input
-              type="text"
-              value={minTimeGap}
-              onChange={(e) => setMinTimeGap(e.target.value)}
+              type="number"
+              value={minimumTimeGap}
+              onChange={(e) => setMinimumTimeGap(e.target.value)}
               className={`w-full border rounded py-2 px-3 ${
-                errors.minTimeGap ? 'border-red-500' : ''
+                errors.minimumTimeGap ? 'border-red-500' : ''
               }`}
             />
-            {errors.minTimeGap && (
-              <p className="text-red-500 text-sm mt-1">{errors.minTimeGap}</p>
+            {errors.minimumTimeGap && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.minimumTimeGap}
+              </p>
             )}
           </div>
           <div className="flex items-center mt-4">
@@ -373,12 +401,17 @@ export default function Home() {
               IMAP Host
             </label>
             <input
-              className="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              className={`appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${
+                errors.imapHost ? 'border-red-500' : ''
+              }`}
               type="text"
               placeholder="IMAP Host"
               value={imapHost}
               onChange={(e) => setImapHost(e.target.value)}
             />
+            {errors.imapHost && (
+              <p className="text-red-500 text-sm mt-1">{errors.imapHost}</p>
+            )}
           </div>
           <div className="w-1/2">
             <label className="block text-gray-700 text-sm mb-2">
@@ -386,19 +419,25 @@ export default function Home() {
             </label>
             <div className="flex items-center">
               <input
-                className="appearance-none border rounded-l w-1/2 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                className={`appearance-none border rounded-l w-1/2 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${
+                  errors.imapPort ? 'border-red-500' : ''
+                }`}
                 type="text"
                 placeholder="IMAP Port"
                 value={imapPort}
                 onChange={(e) => setImapPort(e.target.value)}
                 readOnly
               />
+              {errors.imapPort && (
+                <p className="text-red-500 text-sm mt-1">{errors.imapPort}</p>
+              )}
               <div className="ml-2 flex items-center">
                 <input
                   className="mr-1"
                   type="radio"
                   name="imapPort"
                   value="465"
+                  checked={imapPort === '465'}
                   onChange={(e) => setImapPort(e.target.value)}
                 />
                 <span className="text-sm">SSL</span>
@@ -408,7 +447,8 @@ export default function Home() {
                   className="mr-1"
                   type="radio"
                   name="imapPort"
-                  value="993"
+                  value="587"
+                  checked={imapPort === '587'}
                   onChange={(e) => setImapPort(e.target.value)}
                 />
                 <span className="text-sm">TLS</span>
@@ -418,7 +458,8 @@ export default function Home() {
                   className="mr-1"
                   type="radio"
                   name="imapPort"
-                  value="0"
+                  value="25"
+                  checked={imapPort === '25'}
                   onChange={(e) => setImapPort(e.target.value)}
                 />
                 <span className="text-sm">None</span>
@@ -432,15 +473,20 @@ export default function Home() {
         <button
           className="mt-4 w-full bg-gray-500 text-white font-bold py-2 px-4 rounded"
           type="button"
+          onClick={(e) => handleSubmit(e, 'verify')}
         >
-          Verify Email
+          {isLoading ? (
+            <FontAwesomeIcon icon={faSpinner} spin />
+          ) : (
+            'Verify Email'
+          )}
         </button>
         <button
           type="submit"
-          onClick={handleSubmit}
+          onClick={(e) => handleSubmit(e, 'submit')}
           className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 mt-4 rounded text-center w-full"
         >
-          Save
+          {isLoading ? <FontAwesomeIcon icon={faSpinner} spin /> : 'Save'}
         </button>
       </form>
     </div>
