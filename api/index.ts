@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const baseURL =
   process.env.NEXT_PUBLIC_ENV === 'production'
-    ? 'https://smartlead.0xkrc.dev/api/v1'
+    ? 'https://smartlead-api.0xkrc.dev/api/v1'
     : 'http://localhost:4000/api/v1';
 
 export const api = axios.create({
