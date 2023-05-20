@@ -295,7 +295,7 @@ export default function Home() {
             <input
               type="number"
               value={messagesPerDay}
-              onChange={(e) => setMessagesPerDay(e.target.value)}
+              onChange={(e) => setMessagesPerDay(parseInt(e.target.value, 10))}
               className={`w-full border rounded py-2 px-3 ${
                 errors.messagesPerDay ? 'border-red-500' : ''
               }`}
@@ -311,7 +311,7 @@ export default function Home() {
             <input
               type="number"
               value={minimumTimeGap}
-              onChange={(e) => setMinimumTimeGap(e.target.value)}
+              onChange={(e) => setMinimumTimeGap(parseInt(e.target.value, 10))}
               className={`w-full border rounded py-2 px-3 ${
                 errors.minimumTimeGap ? 'border-red-500' : ''
               }`}

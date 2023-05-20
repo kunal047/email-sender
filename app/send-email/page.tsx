@@ -106,7 +106,7 @@ export default function SendEmail() {
           <textarea
             className="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             id="emailBody"
-            rows="5"
+            rows={5}
             placeholder="Enter the email body"
             value={emailBody}
             onChange={(e) => setEmailBody(e.target.value)}
