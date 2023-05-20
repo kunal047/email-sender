@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { api } from '../../api';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import PopUp from '../../components/PopUp';
 
 export default function SendEmail() {
   const [toEmail, setToEmail] = useState('');
@@ -13,6 +14,18 @@ export default function SendEmail() {
 
   // loading
   const [isLoading, setIsLoading] = useState(false);
+
+    // pop up
+    const [showPopUp, setShowPopUp] = useState(false);
+    const [popUpMessage, setPopUpMessage] = useState('');
+    const [popUpType, setPopUpType] = useState<'success' | 'error'>('success');
+    const handleShowPopUp = () => {
+      setShowPopUp(true);
+    };
+  
+    const handleClosePopUp = () => {
+      setShowPopUp(false);
+    };
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -45,10 +58,17 @@ export default function SendEmail() {
 
       if (response.status === 200) {
         console.log('Email sent successfully');
+        // show success popup
+        setPopUpMessage('Email sent successfully');
+        setPopUpType('success');
       }
       setIsLoading(false);
-    } catch (error) {
+    } catch (error: any) {
+      setPopUpMessage(error.response.data.message || 'Something went wrong!');
       setIsLoading(false);
+      setPopUpType('error');
+      // show error popup
+      handleShowPopUp();
     }
 
     // Reset form fields
@@ -60,6 +80,9 @@ export default function SendEmail() {
 
   return (
     <div className="flex justify-center items-center h-screen">
+      {showPopUp && (
+        <PopUp message={popUpMessage} type={popUpType} onClose={handleClosePopUp} />
+      )}
       <form
         className="w-2/3 bg-white shadow-md rounded px-8 py-6"
         onSubmit={(e) => e.preventDefault()}

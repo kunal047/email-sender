@@ -29,6 +29,7 @@ export default function Home() {
   // pop up
   const [showPopUp, setShowPopUp] = useState(false);
   const [popUpMessage, setPopUpMessage] = useState('');
+  const [popUpType, setPopUpType] = useState<'success' | 'error'>('success');
   const handleShowPopUp = () => {
     setShowPopUp(true);
   };
@@ -128,35 +129,51 @@ export default function Home() {
         console.log('Form data saved');
         // Reset form fields
         // Reset form fields
-        setFromName('');
-        setFromEmail('');
-        setUserName('');
-        setPassword('');
-        setSmtpHost('smtp.');
-        setSmtpPort('');
-        setMessagesPerDay(0);
-        setMinimumTimeGap(0);
-        setShowReplyTo(false);
-        setReplyToAddress('');
-        // imap settings
-        setUseDifferentEmailForIMAP(false);
-        setImapUserName('');
-        setImapPassword('');
-        setImapHost('imap.');
-        setImapPort('');
+        if (trigger === 'submit') {
+          setFromName('');
+          setFromEmail('');
+          setUserName('');
+          setPassword('');
+          setSmtpHost('smtp.');
+          setSmtpPort('');
+          setMessagesPerDay(0);
+          setMinimumTimeGap(0);
+          setShowReplyTo(false);
+          setReplyToAddress('');
+          // imap settings
+          setUseDifferentEmailForIMAP(false);
+          setImapUserName('');
+          setImapPassword('');
+          setImapHost('imap.');
+          setImapPort('');
+
+          // show success popup
+          setPopUpMessage('Email account added successfully');
+          setPopUpType('success');
+          handleShowPopUp();
+        } else {
+          // show success popup
+          setPopUpMessage('Email account verified successfully');
+          setPopUpType('success');
+          handleShowPopUp();
+        }
       } else {
         // Handle error response from API
         console.error('Error saving form data', response.data);
-        setPopUpMessage(response.data.message);
+        setPopUpMessage(response.data.message 
+          || 'Something went wrong');
+        setPopUpType('error');
         setIsLoading(false);
-        handleShowPopUp();
         // show error popup
+        handleShowPopUp();
       }
     } catch (error: any) {
       // Handle network error
       console.error('Network error', error.response);
-      setPopUpMessage(error.response.data.message);
+      setPopUpMessage(error.response.data.message || 'Something went wrong');
       setIsLoading(false);
+      setPopUpType('error');
+      // show error popup
       handleShowPopUp();
     }
   };
@@ -168,7 +185,7 @@ export default function Home() {
   return (
     <div className="flex justify-center items-center">
       {showPopUp && (
-        <PopUp message={popUpMessage} type="error" onClose={handleClosePopUp} />
+        <PopUp message={popUpMessage} type={popUpType} onClose={handleClosePopUp} />
       )}
       <form className="w-2/3 p-8 bg-white rounded shadow">
         <h1 className="text-2xl font-bold mb-4">SMTP Settings</h1>
