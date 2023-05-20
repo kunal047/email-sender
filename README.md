@@ -21,5 +21,5 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ## Deployed on Vercel
 
-The project is deployed on vercel and can be checked on [email-sender-git-main-kunal047.vercel.app](https://email-sender-git-main-kunal047.vercel.app)
+The project is deployed at [smartlead.0xkrc.dev](https://smartlead.0xkrc.dev)
 
